@@ -1,0 +1,25 @@
+{
+  "id": "private-item-share",
+  "title": "Private Item Share",
+  "description": "GM-only private Item previews sent in chat to one selected player.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Daikaze"
+    }
+  ],
+  "url": "https://github.com/Daikaze/Private-Message",
+  "compatibility": {
+    "minimum": "14",
+    "maximum": "14"
+  },
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/private-item-share.css"
+  ],
+  "manifest": "https://raw.githubusercontent.com/Daikaze/Private-Message/main/module.json",
+  "download": "https://raw.githubusercontent.com/Daikaze/Private-Message/main/dist/private-item-share-v14.zip",
+  "socket": false
+}
