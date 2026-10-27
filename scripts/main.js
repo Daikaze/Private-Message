@@ -1,18 +1,14 @@
-/* Private Item Share - Foundry VTT 11 and 14 */
+/* Private Item Share v0.2.0 - right-click only - Foundry VTT 11 and 14 */
 (() => {
   "use strict";
   const ID = "private-item-share";
   const I18N = {
-    en: { title:"Show Item Privately", button:"Show Privately", chat:"Private Item", player:"Only this player can see it", search:"Search items and inventories", drop:"Drop an Item from an inventory or Compendium here", cancel:"Cancel", item:"Select an item", choose:"Select a player", none:"No players available", invalid:"Drop a valid Item", sent:"Item shown privately to", empty:"No description available", secret:"Private preview", type:"Type", rarity:"Rarity", price:"Price", weight:"Weight", damage:"Damage", quantity:"Quantity" },
-    bg: { title:"Покажи предмет лично", button:"Покажи лично", chat:"Личен предмет", player:"Само този играч ще го вижда", search:"Търси предмет или в инвентар", drop:"Влачи предмет от инвентар или Compendium тук", cancel:"Отказ", item:"Избери предмет", choose:"Избери играч", none:"Няма играчи", invalid:"Влачи валиден предмет", sent:"Предметът е показан лично на", empty:"Няма описание", secret:"Личен преглед", type:"Тип", rarity:"Рядкост", price:"Цена", weight:"Тегло", damage:"Щети", quantity:"Количество" }
+    en: {title:"Show Item Privately",button:"Show Privately",player:"Select the player who will see this item",choose:"Select a player",none:"No players available",invalid:"Unable to locate the item",sent:"Item shown privately to",empty:"No description available",secret:"Private preview",type:"Type",rarity:"Rarity",price:"Price",weight:"Weight",damage:"Damage",quantity:"Quantity",cancel:"Cancel"},
+    bg: {title:"Покажи предмет лично",button:"Покажи лично",player:"Избери играча, който ще вижда предмета",choose:"Избери играч",none:"Няма играчи",invalid:"Предметът не е намерен",sent:"Предметът е показан лично на",empty:"Няма описание",secret:"Личен преглед",type:"Тип",rarity:"Рядкост",price:"Цена",weight:"Тегло",damage:"Щети",quantity:"Количество",cancel:"Отказ"}
   };
   const txt = key => (I18N[game.i18n?.lang?.startsWith("bg") ? "bg" : "en"][key] || key);
   const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const gm = () => !!game.user?.isGM;
-  const itemOf = app => {
-    const item = app?.item || app?.document || app?.object;
-    return item?.documentName === "Item" ? item : null;
-  };
   const image = value => {
     const s = String(value || "").trim();
     return !s || /^(javascript|data|vbscript):/i.test(s) || s.startsWith("//") ? "icons/svg/item-bag.svg" : s;
@@ -56,123 +52,108 @@
     ui.notifications.info(txt("sent") + ": " + recipientName(target));
     return created;
   }
-  function worldItems() {
-    const records = [];
-    for (const item of game.items?.contents || []) records.push({item,owner:"Items"});
-    for (const actor of game.actors?.contents || []) for (const item of actor.items?.contents || []) records.push({item,owner:actor.name});
-    return records.sort((a,b) => a.item.name.localeCompare(b.item.name));
-  }
-  async function droppedItem(event) {
-    let data;
-    try { data = JSON.parse(event.dataTransfer?.getData("text/plain") || "null"); } catch { return null; }
-    if (!data || data.type !== "Item") return null;
-    let item;
-    if (data.uuid && typeof fromUuid === "function") try { item = await fromUuid(data.uuid); } catch (e) { console.warn(ID,e); }
-    if (!item && typeof Item?.fromDropData === "function") try { item = await Item.fromDropData(data); } catch (e) { console.warn(ID,e); }
-    return item?.documentName === "Item" ? item : null;
-  }
   let opened = null;
-  async function open(initial=null) {
+  function open(item) {
     if (!gm()) return ui.notifications.warn("GM only");
+    if (item?.documentName !== "Item") return ui.notifications.warn(txt("invalid"));
     const users = (game.users?.contents || []).filter(u => !u.isGM).sort((a,b) => a.name.localeCompare(b.name));
     if (!users.length) return ui.notifications.warn(txt("none"));
-    if (opened) opened.remove();
+    if (opened?.isConnected) opened.remove();
     const overlay = document.createElement("div");
     overlay.className = "pis-overlay";
-    overlay.innerHTML = '<section class="pis-dialog" role="dialog" aria-modal="true"><header><h2><i class="fas fa-eye-slash"></i> '+esc(txt("title"))+'</h2><button class="pis-x" type="button" aria-label="Close">×</button></header><form><label>'+esc(txt("player"))+'</label><select name="recipient" required><option value="">—</option>'+users.map(u => '<option value="'+esc(u.id)+'">'+esc(recipientName(u))+(u.active?' • Online':'')+'</option>').join("")+'</select><label>'+esc(txt("item"))+'</label><input class="pis-search" type="search" autocomplete="off" placeholder="'+esc(txt("search"))+'"><div class="pis-results" hidden></div><div class="pis-drop"><i class="fas fa-box-open"></i><span>'+esc(txt("drop"))+'</span></div><div class="pis-picked" hidden></div><footer><button class="pis-cancel" type="button">'+esc(txt("cancel"))+'</button><button class="pis-send" type="submit"><i class="fas fa-lock"></i> '+esc(txt("button"))+'</button></footer></form></section>';
+    const playerOptions = users.map(u => '<option value="'+esc(u.id)+'">'+esc(recipientName(u))+(u.active?' • Online':'')+'</option>').join("");
+    overlay.innerHTML =
+      '<section class="pis-dialog" role="dialog" aria-modal="true" aria-label="'+esc(txt("title"))+'">' +
+      '<header><h2><i class="fas fa-eye-slash"></i> '+esc(txt("title"))+'</h2><button class="pis-x" type="button" aria-label="Close">×</button></header>' +
+      '<form><div class="pis-picked"><img src="'+esc(image(item.img))+'" alt=""><strong>'+esc(item.name)+'</strong><i class="fas fa-check-circle"></i></div>' +
+      '<label for="pis-recipient">'+esc(txt("player"))+'</label>' +
+      '<select id="pis-recipient" name="recipient" required><option value="">— '+esc(txt("choose"))+' —</option>'+playerOptions+'</select>' +
+      '<footer><button class="pis-cancel" type="button">'+esc(txt("cancel"))+'</button>' +
+      '<button class="pis-send" type="submit"><i class="fas fa-lock"></i> '+esc(txt("button"))+'</button></footer></form></section>';
     document.body.append(overlay);
     opened = overlay;
-    const search = overlay.querySelector(".pis-search"), results = overlay.querySelector(".pis-results"), drop = overlay.querySelector(".pis-drop"), picked = overlay.querySelector(".pis-picked");
-    const entries = worldItems();
-    let chosen = initial?.documentName === "Item" ? initial : null;
-    let visible = [];
-    const close = () => { overlay.remove(); if (opened === overlay) opened = null; document.removeEventListener("keydown",key); };
     const key = e => { if (e.key === "Escape") {e.preventDefault();close();} };
+    const close = () => {overlay.remove();if(opened === overlay)opened=null;document.removeEventListener("keydown",key);};
     document.addEventListener("keydown",key);
-    overlay.addEventListener("click",e => { if (e.target === overlay || e.target.closest(".pis-x,.pis-cancel")) close(); if (!e.target.closest(".pis-search,.pis-results")) results.hidden = true; });
-    const showSelected = () => {
-      picked.hidden = !chosen;
-      picked.innerHTML = chosen ? '<img src="'+esc(image(chosen.img))+'" alt=""><strong>'+esc(chosen.name)+'</strong><i class="fas fa-check-circle"></i>' : "";
-      results.hidden = true;
-    };
-    const searchItems = () => {
-      const q = search.value.trim().toLocaleLowerCase();
-      visible = entries.filter(x => (x.item.name+" "+x.owner).toLocaleLowerCase().includes(q)).slice(0,60);
-      results.innerHTML = visible.length ? visible.map((r,i) => '<button type="button" data-index="'+i+'"><img src="'+esc(image(r.item.img))+'" alt=""><span><strong>'+esc(r.item.name)+'</strong><small>'+esc(r.owner)+'</small></span></button>').join("") : '<p>No matching items</p>';
-      results.hidden = false;
-    };
-    search.addEventListener("input",searchItems);
-    search.addEventListener("focus",searchItems);
-    results.addEventListener("click",e => {
-      const btn = e.target.closest("[data-index]");
-      if (!btn) return;
-      chosen = visible[Number(btn.dataset.index)]?.item || null;
-      if (chosen) search.value = chosen.name;
-      showSelected();
-    });
-    drop.addEventListener("dragover",e => {e.preventDefault();drop.classList.add("pis-over");});
-    drop.addEventListener("dragleave",() => drop.classList.remove("pis-over"));
-    drop.addEventListener("drop",async e => {
-      e.preventDefault();drop.classList.remove("pis-over");
-      const item = await droppedItem(e);
-      if (!item) return ui.notifications.warn(txt("invalid"));
-      chosen = item; search.value = item.name; showSelected();
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay || e.target.closest(".pis-x,.pis-cancel")) close();
     });
     overlay.querySelector("form").addEventListener("submit",async e => {
       e.preventDefault();
-      if (!chosen) return ui.notifications.warn(txt("item"));
-      const id = overlay.querySelector("select[name='recipient']").value;
-      if (!id) return ui.notifications.warn(txt("choose"));
+      const recipientId = overlay.querySelector('select[name="recipient"]').value;
+      if (!recipientId) return ui.notifications.warn(txt("choose"));
       const submit = overlay.querySelector(".pis-send");
       submit.disabled = true;
-      try { await sendItem(chosen,id); close(); }
-      catch (err) {console.error(ID,err);ui.notifications.error(String(err?.message || err));submit.disabled = false;}
+      try { await sendItem(item,recipientId);close(); }
+      catch (err) { console.error(ID,err);ui.notifications.error(String(err?.message || err));submit.disabled=false; }
     });
-    showSelected();
-    (chosen ? overlay.querySelector("select") : search).focus();
+    overlay.querySelector("select").focus();
     return overlay;
   }
-  function headerV11(app,buttons) {
-    if (!gm() || !Array.isArray(buttons)) return;
-    const item = itemOf(app);
-    if (item && !buttons.some(b => b.class === "pis-item-share")) buttons.unshift({label:txt("button"),class:"pis-item-share",icon:"fas fa-eye-slash",onclick:() => open(item)});
+  function isV14() { return Number.parseInt(String(game.version || game.release?.generation || "0"),10) >= 14; }
+  function elementOf(value) {
+    if (!value) return null;
+    if (value instanceof HTMLElement) return value;
+    if (value[0] instanceof HTMLElement) return value[0];
+    return value?.target instanceof HTMLElement ? value.target : null;
   }
-  function headerV14(app,controls) {
-    if (!gm() || !Array.isArray(controls)) return;
-    const item = itemOf(app);
-    if (item && !controls.some(b => b.action === ID)) controls.push({action:ID,label:txt("button"),icon:"fa-solid fa-eye-slash",onClick:() => open(item),visible:true});
+  // The Item Directory passes a row. Embedded items use a D&D 5e hook that
+  // already supplies the Item document, avoiding ambiguous item IDs.
+  async function directoryItem(element,app) {
+    const el = elementOf(element);
+    const row = el?.closest("[data-item-id],[data-document-id],[data-entry-id],[data-uuid]") || el;
+    if (!row) return null;
+    const uuid = row.dataset.uuid || row.dataset.documentUuid || row.dataset.entryUuid;
+    if (uuid && typeof fromUuid === "function") {
+      try {
+        const document = await fromUuid(uuid);
+        if (document?.documentName === "Item") return document;
+      } catch(err) { console.warn(ID,err); }
+    }
+    const id = row.dataset.documentId || row.dataset.entryId || row.dataset.itemId || row.dataset.entityId;
+    if (!id) return null;
+    const item = app?.collection?.get?.(id) || game.items?.get?.(id);
+    return item?.documentName === "Item" ? item : null;
   }
-  function menuItem(el) {
-    const node = el?.jquery ? el[0] : el;
-    const row = node?.closest?.("[data-document-id],[data-entry-id],[data-item-id]") || node;
-    return game.items.get(row?.dataset?.documentId || row?.dataset?.entryId || row?.dataset?.itemId);
+  async function onDirectoryItem(element,app) {
+    const item = await directoryItem(element,app);
+    return item ? open(item) : ui.notifications.warn(txt("invalid"));
   }
-  Hooks.on("getApplicationHeaderButtons",headerV11);
-  Hooks.on("getItemSheetHeaderButtons",headerV11);
-  Hooks.on("getHeaderControlsApplicationV2",headerV14);
-  Hooks.on("getItemDirectoryEntryContext",(_html,options) => {
-    if (!Array.isArray(options)) return;
-    options.push({name:txt("button"),icon:'<i class="fas fa-eye-slash"></i>',condition:gm,callback:el => {const item=menuItem(el);if(item)open(item);}});
+  function appendLegacy(options,getItem,app) {
+    if (!gm() || !Array.isArray(options) || options.some(o => o.pisAction)) return;
+    options.push({
+      pisAction:true,name:txt("button"),icon:'<i class="fas fa-eye-slash"></i>',
+      condition:() => gm(),
+      callback: element => getItem ? open(getItem) : onDirectoryItem(element,app)
+    });
+  }
+  function appendV14(options,getItem,app) {
+    if (!gm() || !Array.isArray(options) || options.some(o => o.pisAction)) return;
+    options.push({
+      pisAction:true,label:txt("button"),icon:"fa-solid fa-eye-slash",
+      visible:() => gm(),
+      onClick:(_event,element) => getItem ? open(getItem) : onDirectoryItem(element,app)
+    });
+  }
+  // Core V11's Items sidebar right-click menu.
+  Hooks.on("getItemDirectoryEntryContext",(html,options) => {
+    if (!isV14()) appendLegacy(options,null,null);
   });
-  Hooks.on("getItemContextOptions",(_app,options) => {
-    if (!Array.isArray(options)) return;
-    options.push({label:txt("button"),classes:ID,icon:"fa-solid fa-eye-slash",visible:gm,onClick:(_event,el) => {const item=menuItem(el);if(item)open(item);}});
+  // Core V14's Items sidebar right-click menu.
+  Hooks.on("getItemContextOptions",(app,options) => {
+    if (isV14()) appendV14(options,null,app);
   });
-  function mount() {
-    if (!gm()) return;
-    const chat = document.querySelector("#chat") || document.querySelector("#sidebar-chat") || document.querySelector('.sidebar-tab[data-tab="chat"]');
-    if (!chat || chat.querySelector(".pis-launch")) return;
-    const wrap = document.createElement("div");
-    wrap.className = "pis-launch";
-    wrap.innerHTML = '<button type="button"><i class="fas fa-eye-slash"></i> '+esc(txt("chat"))+'</button>';
-    wrap.querySelector("button").addEventListener("click",() => open());
-    (chat.querySelector(".chat-controls") || chat.querySelector(".directory-header") || chat).prepend(wrap);
-  }
-  for (const hook of ["renderChatLog","renderChatLogV2","renderSidebarTab","renderSidebar"]) Hooks.on(hook,() => setTimeout(mount,0));
+  // D&D 5e actor inventory / features / spells context menu, both generations.
+  Hooks.on("dnd5e.getItemContextOptions",(item,options) => {
+    if (item?.documentName !== "Item") return;
+    if (isV14()) appendV14(options,item,null);
+    else appendLegacy(options,item,null);
+  });
   Hooks.once("ready",() => {
     const mod = game.modules.get(ID);
-    if (mod) mod.api = Object.freeze({open,showItem:open,sendItem});
-    setTimeout(mount,0);
-    console.info("[Private Item Share] Ready for Foundry "+game.version);
+    if (mod) mod.api = Object.freeze({showItem:open,sendItem});
+    // Clean up a stale sidebar button after upgrading from v0.1.0.
+    document.querySelectorAll(".pis-launch").forEach(el => el.remove());
+    console.info("[Private Item Share] Context menu mode active on Foundry "+game.version);
   });
 })();

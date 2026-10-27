@@ -1,8 +1,8 @@
 {
   "id": "private-item-share",
   "title": "Private Item Share",
-  "description": "GM-only private Item previews sent in chat to one selected player.",
-  "version": "0.1.0",
+  "description": "Right-click an Item to show it privately in chat to one selected player; no sidebar or sheet buttons.",
+  "version": "0.2.0",
   "authors": [
     {
       "name": "Daikaze"
