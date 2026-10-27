@@ -1,8 +1,8 @@
 {
   "id": "private-item-share",
   "title": "Private Item Share",
-  "description": "Right-click an Item to show it privately in chat to one selected player; no sidebar or sheet buttons.",
-  "version": "0.2.0",
+  "description": "Right-click an item and whisper its art only to another player or GM.",
+  "version": "0.3.0",
   "authors": [
     {
       "name": "Daikaze"
@@ -20,6 +20,5 @@
     "styles/private-item-share.css"
   ],
   "manifest": "https://raw.githubusercontent.com/Daikaze/Private-Message/main/v11/module.json",
-  "download": "https://raw.githubusercontent.com/Daikaze/Private-Message/main/dist/private-item-share-v11.zip",
-  "socket": false
+  "download": "https://raw.githubusercontent.com/Daikaze/Private-Message/main/dist/private-item-share-v11.zip"
 }
