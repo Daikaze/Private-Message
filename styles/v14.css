@@ -1,0 +1,57 @@
+/* Private Item Share — native Foundry V14 DialogV2 only.
+   Foundry manages title bar, dialog frame, controls, sizing, and theme.
+   No global selectors, modal overlays or custom dark palette. */
+.pis-native-dialog .pis-native-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+  min-width: 0;
+  padding: 10px 4px 4px;
+  color: var(--color-text-primary, inherit);
+}
+.pis-native-dialog .pis-native-preview {
+  align-self: center;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border: 1px solid var(--color-border-light-primary, var(--color-border-dark-4, #7777));
+  border-radius: 4px;
+  background: transparent;
+}
+.pis-native-dialog .pis-recipient-label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12px;
+}
+.pis-native-dialog .pis-recipient-label select {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+}
+.pis-native-dialog .pis-recipient-label select:focus-visible {
+  outline: 2px solid var(--color-focus-outline, var(--color-border-highlight, currentColor));
+  outline-offset: 1px;
+}
+/* The chat card has precisely one image, no item text, stats or description.
+   Keep it full-size where possible, without cutting away any of the art. */
+.chat-message .message-content img.pis-art-only {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 460px;
+  margin: 0 auto;
+  object-fit: contain;
+  border: 0;
+  box-shadow: none;
+}
+.chat-message .message-content:has(>img.pis-art-only) {
+  padding: 4px;
+  background: transparent;
+}
