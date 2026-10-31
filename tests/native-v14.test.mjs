@@ -131,13 +131,13 @@ test("actor inventory action works for players; no header or chat button",async(
 });
 test("restricted or hidden item cannot be shared by a player",async()=>{
   const h=setup({allowView:false});
-  assert.equal((await h.api.sendItem(h.item,"p2")).id,"chat1");
-  // Parent denies view, but a directly-owned embedded item requires explicit ownership.
+  // Actor ownership/observer rights are checked, not merely an embedded Item flag.
+  await assert.rejects(h.api.sendItem(h.item,"p2"));
   h.item.isOwner=false;
   await assert.rejects(h.api.sendItem(h.item,"p2"));
   h.item.visible=false;
   await assert.rejects(h.api.sendItem(h.item,"p2"));
-  assert.equal(h.messages.length,1);
+  assert.equal(h.messages.length,0);
 });
 test("GM can share an item and cancel does not emit a message",async()=>{
   const h=setup({gm:true,allowView:false});
