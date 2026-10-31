@@ -62,6 +62,7 @@
   let currentDialog = null;
   async function showItem(item) {
     if (!allowed(item)) { ui.notifications.warn(t("invalid")); return null; }
+    if (currentDialog) return currentDialog;
     const users = recipients();
     if (!users.length) { ui.notifications.warn(t("none")); return null; }
 
@@ -82,72 +83,52 @@
         '</label>' +
       '</div>';
 
-    // All UI chrome is Foundry's own. Close an old chooser before opening a new one.
-    if (currentDialog?.rendered) await currentDialog.close();
-    let chosen = null;
-    const chooser = new DialogV2({
-      classes:["pis-native-dialog"],
-      window:{
-        title:t("action"),
-        icon:"fa-solid fa-image",
-        frame:true,
-        minimizable:true,
-        resizable:true
-      },
-      position:{width:400,height:"auto"},
-      content:html,
-      buttons:[
-        {
-          action:"cancel",
-          label:t("cancel")
-        },
-        {
-          action:"send",
-          label:t("send"),
-          icon:"fa-solid fa-paper-plane",
-          default:true,
-          callback:(_event,button) =>
-            String(button.form?.elements?.namedItem("recipient")?.value ?? "")
+    // DialogV2 controls the Foundry-native frame and all button behavior.
+    const task = (async () => {
+      try {
+        const result = await DialogV2.wait({
+          classes:["pis-native-dialog"],
+          window:{
+            title:t("action"),
+            icon:"fa-solid fa-image",
+            frame:true,
+            minimizable:true,
+            resizable:true
+          },
+          position:{width:400,height:470},
+          content:html,
+          buttons:[
+            {action:"cancel",label:t("cancel")},
+            {
+              action:"send",label:t("send"),icon:"fa-solid fa-paper-plane",default:true,
+              callback:(_event,button) =>
+                String(button.form?.elements?.namedItem("recipient")?.value ?? "")
+            }
+          ],
+          rejectClose:false,
+          modal:false
+        });
+        if (!result || result === "cancel") return null;
+        const recipientId=String(result);
+        if (!game.users.get(recipientId)) {
+          ui.notifications.warn(t("choose"));
+          return null;
         }
-      ],
-      submit:(_result)=>{}
-    });
-    currentDialog=chooser;
-    try {
-      const result = await DialogV2.wait({
-        classes:["pis-native-dialog"],
-        window:{
-          title:t("action"),
-          icon:"fa-solid fa-image",
-          frame:true,
-          minimizable:true,
-          resizable:true
-        },
-        position:{width:400,height:470},
-        content:html,
-        buttons:[
-          {action:"cancel",label:t("cancel")},
-          {
-            action:"send",label:t("send"),icon:"fa-solid fa-paper-plane",default:true,
-            callback:(_event,button) =>
-              String(button.form?.elements?.namedItem("recipient")?.value ?? "")
-          }
-        ],
-        rejectClose:false,
-        modal:false
-      });
-      if (!result || result === "cancel") return null;
-      chosen=String(result);
-      if (!game.users.get(chosen)) {ui.notifications.warn(t("choose"));return null;}
-      try { return await sendItem(item,chosen); }
-      catch (error) {
+        try { return await sendItem(item,recipientId); }
+        catch (error) {
+          console.error(MODULE,error);
+          ui.notifications.error(error.message || t("error"));
+          return null;
+        }
+      } catch (error) {
         console.error(MODULE,error);
         ui.notifications.error(error.message || t("error"));
         return null;
       }
-    } finally {
-      if (currentDialog===chooser) currentDialog=null;
-    }
+    })();
+    currentDialog=task;
+    try { return await task; }
+    finally { if (currentDialog===task) currentDialog=null; }
   }
 
   function domElement(value) {
