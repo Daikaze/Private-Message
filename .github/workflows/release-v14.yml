@@ -1,0 +1,81 @@
+name: Validate and release Private Item Share V14
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "module.json"
+      - "scripts/main-v14.js"
+      - "styles/v14.css"
+      - "tests/**"
+      - ".github/workflows/release-v14.yml"
+  push:
+    branches: [main]
+    paths:
+      - "module.json"
+      - "scripts/main-v14.js"
+      - "styles/v14.css"
+      - "tests/**"
+      - ".github/workflows/release-v14.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  validate-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out module
+        uses: actions/checkout@v4
+      - name: Validate V14 JavaScript, permissions and private art behavior
+        run: |
+          set -euo pipefail
+          node --check scripts/main-v14.js
+          node --test tests/*.test.mjs
+      - name: Build and validate Foundry V14 module ZIP
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          import pathlib
+          import zipfile
+          module = json.loads(pathlib.Path("module.json").read_text(encoding="utf-8"))
+          legacy = json.loads(pathlib.Path("v11/module.json").read_text(encoding="utf-8"))
+          assert module["id"] == "private-item-share"
+          assert module["version"] == "0.3.1"
+          assert module["compatibility"]["verified"] == "14"
+          assert module["relationships"]["systems"][0]["compatibility"]["verified"] == "6.0.6"
+          assert module["esmodules"] == ["scripts/main-v14.js"]
+          assert module["styles"] == ["styles/v14.css"]
+          assert legacy["version"] == "0.3.0"
+          assert legacy["esmodules"] == ["scripts/main.js"]
+          version=module["version"]
+          expected=f"https://github.com/Daikaze/Private-Message/releases/download/v{version}/private-item-share-v14.zip"
+          assert module["download"] == expected
+          paths=["module.json","scripts/main-v14.js","styles/v14.css","README.md"]
+          with zipfile.ZipFile("private-item-share-v14.zip","w",zipfile.ZIP_DEFLATED,compresslevel=9) as archive:
+            for file in paths:
+              assert pathlib.Path(file).is_file(),file
+              archive.write(file,file)
+          with zipfile.ZipFile("private-item-share-v14.zip") as archive:
+            assert archive.testzip() is None
+            assert json.loads(archive.read("module.json")) == module
+            for path in [*module["esmodules"],*module["styles"]]:
+              assert path in archive.namelist()
+          print("Valid Foundry V14 installable ZIP")
+          PY
+      - name: Publish immutable V14 GitHub Release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          VERSION="$(node -p "require('./module.json').version")"
+          TAG="v${VERSION}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "::warning title=Release already exists::V14 $TAG is immutable. Bump module.json version to publish additional changes."
+            exit 0
+          fi
+          gh release create "$TAG" private-item-share-v14.zip module.json \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Private Item Share $TAG — Foundry V14" \
+            --notes "Foundry V14 / D&D 5e 6.0.6. Native DialogV2 recipient chooser; image-only private whispers and right-click item sharing. Players and GMs can share permitted items. V11 distribution unchanged."
