@@ -1,5 +1,5 @@
 /**
- * Private Item Share v0.3.3 — Foundry V14 / D&D5e 6.0.6
+ * Private Item Share v0.3.4 — Foundry V14 / D&D5e 6.0.6–6.1.1
  * The only chat content is the item's art. No sheet header button or custom
  * overlay. Use core DialogV2 (native resize/minimize and theme controls).
  */
