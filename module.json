@@ -1,8 +1,8 @@
 {
   "id": "private-item-share",
   "title": "Private Item Share",
-  "description": "Right-click an item in Foundry V14 / D&D5e 6.0.6 and whisper only its art to one player or GM; native DialogV2 recipient chooser.",
-  "version": "0.3.1",
+  "description": "Right-click an item in Foundry V13 / D&D5e 5.3.3 and whisper only its art to one player or GM; native DialogV2 recipient chooser.",
+  "version": "0.3.2",
   "authors": [
     {
       "name": "Daikaze"
@@ -10,26 +10,26 @@
   ],
   "url": "https://github.com/Daikaze/Private-Message",
   "compatibility": {
-    "minimum": "14",
-    "verified": "14",
-    "maximum": "14"
+    "minimum": "13.347",
+    "verified": "13",
+    "maximum": "13"
   },
   "esmodules": [
-    "scripts/main-v14.js"
+    "scripts/main-v13.js"
   ],
   "styles": [
-    "styles/v14.css"
+    "styles/v13.css"
   ],
-  "manifest": "https://raw.githubusercontent.com/Daikaze/Private-Message/main/module.json",
-  "download": "https://github.com/Daikaze/Private-Message/releases/download/v0.3.1/private-item-share-v14.zip",
+  "manifest": "https://raw.githubusercontent.com/Daikaze/Private-Message/foundry-v13/module.json",
+  "download": "https://github.com/Daikaze/Private-Message/releases/download/foundry-v13-v0.3.2/private-item-share-v13.zip",
   "relationships": {
     "systems": [
       {
         "id": "dnd5e",
         "type": "system",
         "compatibility": {
-          "minimum": "6.0.6",
-          "verified": "6.0.6"
+          "minimum": "5.3.3",
+          "verified": "5.3.3"
         }
       }
     ]

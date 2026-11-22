@@ -1,4 +1,4 @@
-/* Private Item Share — native Foundry V14 DialogV2 only.
+/* Private Item Share — native Foundry V13 DialogV2 only.
    Foundry manages title bar, dialog frame, controls, sizing, and theme.
    No global selectors, modal overlays or custom dark palette. */
 .pis-native-dialog .pis-native-content {

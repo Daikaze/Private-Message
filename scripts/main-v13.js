@@ -1,5 +1,5 @@
 /**
- * Private Item Share v0.3.1 — Foundry V14 / D&D5e 6.0.6
+ * Private Item Share v0.3.2 — Foundry V13 / D&D5e 5.3.3
  * The only chat content is the item's art. No sheet header button or custom
  * overlay. Use core DialogV2 (native resize/minimize and theme controls).
  */
@@ -162,20 +162,17 @@
 
   function addEntry(options,item,app) {
     if (!Array.isArray(options) || options.some(o=>o.pisPrivateArt)) return;
-    const onClick=(_event,entry)=> {
-      if (item) return showItem(item);
-      return showDirectoryItem(entry??_event,app);
-    };
     options.push({
       pisPrivateArt:true,
-      label:t("action"),
-      icon:"fa-solid fa-image",
-      visible:()=> item ? allowed(item) : true,
-      onClick
+      name:t("action"),
+      icon:'<i class="fa-solid fa-image"></i>',
+      condition:()=> item ? allowed(item) : true,
+      callback:entry=>item ? showItem(item) : showDirectoryItem(entry,app)
     });
   }
 
-  // Register at module evaluation, before V14 sidebar context menus are built.
+  // Register at module evaluation, before V13 sidebar context menus are built.
+  Hooks.on("getItemDirectoryEntryContext",(app,options)=>addEntry(options,null,app));
   Hooks.on("getItemContextOptions",(app,options)=>addEntry(options,null,app));
   Hooks.on("dnd5e.getItemContextOptions",(item,options)=>{
     if (isItem(item)) addEntry(options,item,null);

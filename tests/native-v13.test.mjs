@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import vm from "node:vm";
 
-const path=new URL("../scripts/main-v14.js", import.meta.url);
+const path=new URL("../scripts/main-v13.js", import.meta.url);
 const script=readFileSync(path,"utf8");
 const manifest=JSON.parse(readFileSync(new URL("../module.json",import.meta.url),"utf8"));
 const v11=JSON.parse(readFileSync(new URL("../v11/module.json",import.meta.url),"utf8"));
@@ -54,7 +54,7 @@ function setup({gm=false, allowView=true}={}) {
     fromUuid:async uuid=>uuid==="Item.i1"?item:null,
     HTMLElement:class HTMLElement {}
   };
-  vm.runInNewContext(script,vm.createContext(sandbox),{filename:"main-v14.js"});
+  vm.runInNewContext(script,vm.createContext(sandbox),{filename:"main-v13.js"});
   hooks.get("ready")();
   const api=sandbox.game.modules.get("private-item-share").api;
   return {
@@ -65,32 +65,39 @@ function setup({gm=false, allowView=true}={}) {
   };
 }
 
-test("native V14 manifest and V11 package remain separate",()=>{
-  assert.equal(manifest.version,"0.3.1");
-  assert.equal(manifest.compatibility.verified,"14");
-  assert.deepEqual(manifest.esmodules,["scripts/main-v14.js"]);
-  assert.deepEqual(manifest.styles,["styles/v14.css"]);
-  assert.equal(manifest.relationships.systems[0].compatibility.verified,"6.0.6");
+test("native V13 manifest and V11 package remain separate",()=>{
+  assert.equal(manifest.version,"0.3.2");
+  assert.equal(manifest.compatibility.verified,"13");
+  assert.deepEqual(manifest.esmodules,["scripts/main-v13.js"]);
+  assert.deepEqual(manifest.styles,["styles/v13.css"]);
+  assert.equal(manifest.relationships.systems[0].compatibility.verified,"5.3.3");
   assert.equal(v11.version,"0.3.0");
   assert.deepEqual(v11.esmodules,["scripts/main.js"]);
   assert.ok(v11.download.endsWith("private-item-share-v11.zip"));
-  const css=readFileSync(new URL("../styles/v14.css",import.meta.url),"utf8");
+  const css=readFileSync(new URL("../styles/v13.css",import.meta.url),"utf8");
   assert.ok(css.includes(".pis-native-dialog .pis-native-content"));
   assert.ok(!css.includes("pis-overlay"));
 });
-test("right-click action appears exactly once for V14 Item directory",()=>{
+test("right-click action appears exactly once for V13 Item directory",async()=>{
   const h=setup();
   assert.ok(h.hooks.has("getItemContextOptions"));
   assert.ok(h.hooks.has("dnd5e.getItemContextOptions"));
-  assert.ok(!h.hooks.has("getItemDirectoryEntryContext"));
+  assert.ok(h.hooks.has("getItemDirectoryEntryContext"));
   const options=[];
   const app={collection:{get:id=>h.sandbox.game.items.get(id)}};
   h.hooks.get("getItemContextOptions")(app,options);
   h.hooks.get("getItemContextOptions")(app,options);
   assert.equal(options.length,1);
-  assert.equal(options[0].label,"Send Art Privately");
-  assert.equal(typeof options[0].onClick,"function");
-  assert.equal(typeof options[0].visible,"function");
+  assert.equal(options[0].name,"Send Art Privately");
+  assert.equal(typeof options[0].callback,"function");
+  assert.equal(typeof options[0].condition,"function");
+  h.hooks.get("getItemDirectoryEntryContext")(app,options);
+  assert.equal(options.length,1);
+  const row=new h.sandbox.HTMLElement();
+  row.dataset={entryId:h.item.id};
+  await options[0].callback(row);
+  assert.equal(h.messages.length,1);
+  assert.deepEqual([...h.messages[0].whisper],["p2","p1"]);
 });
 test("whisper is exactly a single item art image addressed to sender + recipient",async()=>{
   const h=setup();
@@ -103,7 +110,7 @@ test("whisper is exactly a single item art image addressed to sender + recipient
   assert.equal(m.user,"p1");
   await assert.rejects(h.api.sendItem(h.item,"p1"));
 });
-test("native chooser uses V14 DialogV2 with art-only preview and selected recipient",async()=>{
+test("native chooser uses V13 DialogV2 with art-only preview and selected recipient",async()=>{
   const h=setup();
   h.setDialogResult("send");
   await h.api.showItem(h.item);
@@ -123,9 +130,9 @@ test("actor inventory action works for players; no header or chat button",async(
   const options=[];
   h.hooks.get("dnd5e.getItemContextOptions")(h.item,options);
   assert.equal(options.length,1);
-  assert.equal(options[0].visible(),true);
+  assert.equal(options[0].condition(),true);
   h.setDialogResult("send");
-  await options[0].onClick({},null);
+  await options[0].callback({},null);
   assert.equal(h.messages.length,1);
   assert.ok(![...h.hooks.keys()].some(x=>x==="renderItemSheet"||x==="renderChatLog"));
 });
