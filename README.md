@@ -1,4 +1,4 @@
-# Private Item Share v0.3.1
+# Private Item Share v0.3.3
 
 **Send only an item's image as a private chat whisper.** No item card, item name, description or stats in the message. Works for **GMs and players**.
 
@@ -29,6 +29,6 @@ There are no extra chat sidebar or item sheet header buttons.
 Use **Setup → Add-on Modules → Install Module**, paste the relevant Manifest URL, then enable the module in the world. To update from an older version, use the module updater and refresh the world.
 
 - [Download V11 ZIP](dist/private-item-share-v11.zip)
-- [Download V14 v0.3.1 ZIP](https://github.com/Daikaze/Private-Message/releases/download/v0.3.1/private-item-share-v14.zip)
+- [Download V14 v0.3.3 ZIP](https://github.com/Daikaze/Private-Message/releases/download/v0.3.3/private-item-share-v14.zip)
 
 The D&D 5e embedded item menu depends on the sheet exposing the `dnd5e.getItemContextOptions` hook. Other sheets may require an integration. Automated V14 tests cover core behavior; additional third-party sheet compatibility requires a live Foundry V14 test.
