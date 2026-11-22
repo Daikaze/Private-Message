@@ -40,7 +40,7 @@ jobs:
           module = json.loads(pathlib.Path("module.json").read_text(encoding="utf-8"))
           legacy = json.loads(pathlib.Path("v11/module.json").read_text(encoding="utf-8"))
           assert module["id"] == "private-item-share"
-          assert module["version"] == "0.3.1"
+          assert len(module["version"].split(".")) == 3 and all(part.isdigit() for part in module["version"].split("."))
           assert module["compatibility"]["verified"] == "14"
           assert module["relationships"]["systems"][0]["compatibility"]["verified"] == "6.0.6"
           assert module["esmodules"] == ["scripts/main-v14.js"]

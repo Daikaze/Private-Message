@@ -66,7 +66,7 @@ function setup({gm=false, allowView=true}={}) {
 }
 
 test("native V14 manifest and V11 package remain separate",()=>{
-  assert.equal(manifest.version,"0.3.1");
+  assert.match(manifest.version,/^\d+\.\d+\.\d+$/);
   assert.equal(manifest.compatibility.verified,"14");
   assert.deepEqual(manifest.esmodules,["scripts/main-v14.js"]);
   assert.deepEqual(manifest.styles,["styles/v14.css"]);

@@ -2,7 +2,7 @@
   "id": "private-item-share",
   "title": "Private Item Share",
   "description": "Right-click an item in Foundry V14 / D&D5e 6.0.6 and whisper only its art to one player or GM; native DialogV2 recipient chooser.",
-  "version": "0.3.1",
+  "version": "0.3.3",
   "authors": [
     {
       "name": "Daikaze"
@@ -21,7 +21,7 @@
     "styles/v14.css"
   ],
   "manifest": "https://raw.githubusercontent.com/Daikaze/Private-Message/main/module.json",
-  "download": "https://github.com/Daikaze/Private-Message/releases/download/v0.3.1/private-item-share-v14.zip",
+  "download": "https://github.com/Daikaze/Private-Message/releases/download/v0.3.3/private-item-share-v14.zip",
   "relationships": {
     "systems": [
       {
