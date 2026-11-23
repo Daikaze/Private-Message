@@ -42,6 +42,7 @@ jobs:
           assert module["id"] == "private-item-share"
           assert len(module["version"].split(".")) == 3 and all(part.isdigit() for part in module["version"].split("."))
           assert module["compatibility"]["verified"] == "14"
+          assert module["relationships"]["systems"][0]["compatibility"]["minimum"] == "5.3.3"
           assert module["relationships"]["systems"][0]["compatibility"]["verified"] == "6.1.1"
           assert module["relationships"]["systems"][0]["compatibility"]["maximum"] == "6.1.1"
           assert module["esmodules"] == ["scripts/main-v14.js"]
@@ -79,4 +80,4 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --target "$GITHUB_SHA" \
             --title "Private Item Share $TAG — Foundry V14" \
-            --notes "Foundry V14 / D&D 5e 6.0.6–6.1.1. Native DialogV2 recipient chooser; image-only private whispers and right-click item sharing. Players and GMs can share permitted items. V11 distribution unchanged."
+            --notes "Foundry V14 / D&D 5e 5.3.3 or 6.0.6–6.1.1. Native DialogV2 recipient chooser; image-only private whispers and right-click item sharing. Players and GMs can share permitted items. V11 distribution unchanged."

@@ -1,6 +1,10 @@
-# Private Item Share v0.3.4
+# Private Item Share v0.3.5
 
 **Send only an item's image as a private chat whisper.** No item card, item name, description or stats in the message. Works for **GMs and players**.
+
+## v0.3.5 — D&D 5e 5.3.3 compatibility on V14
+
+The V14 manifest allows dnd5e 5.3.3 again. The same image-only permission-restricted Item sharing implementation and V11 package remain intact. Live test the item context menu with the selected actor sheet.
 
 ## v0.3.4 — D&D 5e 6.1.1 compatibility
 
@@ -8,7 +12,7 @@ Updated the V14 package compatibility to D&D 5e 6.1.1 while preserving 6.0.6. It
 
 ## v0.3.1 — Native Foundry V14 interface
 
-- **Foundry V14 / D&D 5e 6.0.6–6.1.1** uses the native `DialogV2` recipient chooser, including standard theme, window resizing and minimizing. There is no custom popup/overlay.
+- **Foundry V14 / D&D 5e 5.3.3 or 6.0.6–6.1.1** uses the native `DialogV2` recipient chooser, including standard theme, window resizing and minimizing. There is no custom popup/overlay.
 - **Right-click an item** in the Items Directory or a D&D 5e sheet exposing the `dnd5e.getItemContextOptions` hook.
 - **Only an image** is sent into a private whisper. No item name, description, stats, card, extra chat text or item transfer.
 - Both players and GMs may share items they are permitted to see.
@@ -33,6 +37,6 @@ There are no extra chat sidebar or item sheet header buttons.
 Use **Setup → Add-on Modules → Install Module**, paste the relevant Manifest URL, then enable the module in the world. To update from an older version, use the module updater and refresh the world.
 
 - [Download V11 ZIP](dist/private-item-share-v11.zip)
-- [Download V14 v0.3.4 ZIP](https://github.com/Daikaze/Private-Message/releases/download/v0.3.4/private-item-share-v14.zip)
+- [Download V14 v0.3.5 ZIP](https://github.com/Daikaze/Private-Message/releases/download/v0.3.5/private-item-share-v14.zip)
 
 The D&D 5e embedded item menu depends on the sheet exposing the `dnd5e.getItemContextOptions` hook. Other sheets may require an integration. Automated V14 tests cover core behavior; additional third-party sheet compatibility requires a live Foundry V14 test.
