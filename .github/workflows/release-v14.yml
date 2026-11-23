@@ -47,7 +47,7 @@ jobs:
           assert module["relationships"]["systems"][0]["compatibility"]["maximum"] == "6.1.1"
           assert module["esmodules"] == ["scripts/main-v14.js"]
           assert module["styles"] == ["styles/v14.css"]
-          assert legacy["version"] == "0.3.0"
+          assert legacy["version"] == "0.3.1"
           assert legacy["esmodules"] == ["scripts/main.js"]
           version=module["version"]
           expected=f"https://github.com/Daikaze/Private-Message/releases/download/v{version}/private-item-share-v14.zip"

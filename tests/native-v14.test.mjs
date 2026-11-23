@@ -73,7 +73,7 @@ test("native V14 manifest and V11 package remain separate",()=>{
   assert.equal(manifest.relationships.systems[0].compatibility.minimum,"5.3.3");
   assert.equal(manifest.relationships.systems[0].compatibility.maximum,"6.1.1");
   assert.equal(manifest.relationships.systems[0].compatibility.verified,"6.1.1");
-  assert.equal(v11.version,"0.3.0");
+  assert.equal(v11.version,"0.3.1");
   assert.deepEqual(v11.esmodules,["scripts/main.js"]);
   assert.ok(v11.download.endsWith("private-item-share-v11.zip"));
   const css=readFileSync(new URL("../styles/v14.css",import.meta.url),"utf8");
